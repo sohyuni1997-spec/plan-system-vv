@@ -72,15 +72,23 @@ if uploaded_file is not None:
     capa_percent = result.sum(axis=0) / 3300 * 100
     st.bar_chart(capa_percent)
 
-    # 6️⃣ 엑셀 다운로드
+# 6️⃣ 엑셀 다운로드
     output = BytesIO()
-    writer = pd.ExcelWriter(output, engine='xlsxwriter')
-    df_filtered.to_excel(writer, index=False, sheet_name='원본')
-    result_display.to_excel(writer, index=False, sheet_name='배분결과')
-    writer.save()
+    
+    # with 구문 시작 (들여쓰기 주의)
+    with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
+        # writer 객체를 사용하는 코드는 반드시 이 블록 안에 들여쓰기 되어야 합니다.
+        df_filtered.to_excel(writer, index=False, sheet_name='배분 결과') 
+        result_display.to_excel(writer, index=False, sheet_name='결과 요약') 
+    
+    # with 블록이 끝나면 자동으로 저장(save) 및 닫기(close)가 됩니다.
+    
+    # st.download_button에 전달할 데이터 준비
+    excel_data = output.getvalue()
+    
     st.download_button(
-        label="💾 수정된 엑셀 다운로드",
-        data=output.getvalue(),
-        file_name="배분결과.xlsx",
+        label="수정된 파일 다운받기",  # 버튼에 표시될 텍스트
+        data=excel_data,               # 다운로드할 데이터 (바이트 형태)
+        file_name="배분_결과_다운로드.xlsx",    # 다운로드될 파일 이름
         mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
     )
